@@ -55,6 +55,7 @@ face_client = FaceClient(ENDPOINT, CognitiveServicesCredentials(KEY))
 root = Tk()
 # jipmusil ident color
 root.configure(background='#222F40')
+root.attributes('-zoomed', True)
 # raspberry pi 7 inch touchscreen resolution
 root.geometry("480x800")
 
@@ -68,7 +69,7 @@ camera.framerate = 32
 rawCapture = PiRGBArray(camera, size=(480, 800))
 
 sensor = Adafruit_AMG88xx(00, 0x69, None)
-
+thermal_cal = 10.5
 
 faceCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 eyesCascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_eye.xml')
@@ -102,7 +103,7 @@ def k(arg, q):
     f_circle = create_circle(240, 240, 160, 5, 'white', myCanvas)
     
 
-    while True:
+    while chk:
         data, evt = q.get()
         print('Receive Original Data : {}'.format(data))
         evt.set()
@@ -110,31 +111,31 @@ def k(arg, q):
         q.task_done()        
         
         # face Detect
-        if data[0] == 1 and chk == 1:
+        if data[0] == 1:
             
             pixels = sensor.readPixels()
+            cal_pix = np.array(pixels) + thermal_cal
         # adaptive min and max temperature colour visualization
-            MINTEMP = min(pixels)
-            MAXTEMP = max(pixels)
+            MINTEMP = min(cal_pix)
+            MAXTEMP = max(cal_pix)
             myCanvas.itemconfig(f_tempLabel, text=MAXTEMP)
             myCanvas.itemconfig(f_textAdviser, text='Face Deteted')
             
-            if data[2] <= 280:
+            if data[2] <= 290:
                 f_sizePerdotSpace = map(data[2],150,250,18,5)
                 f_sizePerLineWidth = map(data[2],150,250,5,18)
+                myCanvas.itemconfig(f_circle, outline='white')
+                myCanvas.itemconfig(f_circle, width=abs(f_sizePerLineWidth), dash=(3,round(abs(f_sizePerdotSpace))))
+                
             else:
                 myCanvas.itemconfig(f_textAdviser, text='Too Close')
                 
             if data[2] >= 200:
-                verify_tick = verify_tick + 1
                 f_verifyIconFill = map(verify_tick,0,5,1,50)
                 myCanvas.itemconfig(f_backcircle, outline='white', outlineoffset='center', width=f_verifyIconFill)
+                #print(verify_tick)
+                verify_tick = verify_tick + 1
                 
-                print(verify_tick)
-            
-                myCanvas.itemconfig(f_circle, outline='white')
-                myCanvas.itemconfig(f_circle, width=abs(f_sizePerLineWidth), dash=(3,round(abs(f_sizePerdotSpace))))
-            
             if verify_tick >= 5:
                 myCanvas.itemconfig(f_backcircle, outline='white', fill='white')
                 myCanvas.itemconfig(f_textAdviser, text='Verifying...')
@@ -174,10 +175,10 @@ def face_Recognition(request_img):
     verify_result_same = face_client.face.verify_face_to_face('104f2e4d-3a38-4e32-8075-7d8219081385', image_face_ID)
     if verify_result_same.is_identical:
         print('Faces the same person, with confidence: {}'.format(verify_result_same.confidence))
-        f_circle = create_circle(240, 240, 160, 5, 'white', myCanvas)
+        v_circle = create_circle(240, 240, 160, 5, 'white', myCanvas)
         
         for i in range(5,1000,1*2):
-            myCanvas.itemconfig(f_circle, width=i, outline='#FDF6EE', fill='#FDF6EE')
+            myCanvas.itemconfig(v_circle, width=i, outline='#FDF6EE', fill='#FDF6EE')
             f_textAdviser = myCanvas.create_text(235, 400, text="Hello!", fill='black', font=('Helvetica',65))
         
         return 0
