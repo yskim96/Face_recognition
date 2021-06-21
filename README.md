@@ -25,7 +25,6 @@ Body temperature Measured(AMG8833) and Face recognition(Azure Face API) on Raspb
 
 # To-Do
 
-- 대기화면 추가 (체온 범위의 물체가 적정 크기 혹은 안면이 수 초 이상 인식될 경우에만 안면인식 화면으로 전환하기)  
 - AMG8833 온도 값 자동 보정 기능 
 - 등록되지 않은 사용자 안면 조회시 QR등 추가 개인 신원인증 통하여 안면 값 매치  
 - 등록된 사용자 출입시 안면인식 정확도에 따라 API 호출을 통하여 추가 학습  
