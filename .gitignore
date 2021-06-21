@@ -1,2 +1,4 @@
 config.py
 face_buf.png
+.gitattributes
+.DS_Store
